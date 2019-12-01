@@ -4,6 +4,7 @@ from random import randint
 from random import shuffle
 import requests
 from time import sleep
+import json 
 
 def get_html(url):
     
@@ -19,14 +20,35 @@ def get_html(url):
 def get_value(html, info_name):
     
     info_value = None
-    
-    
+       
     try:
         info_value = html.select('.itemDetailBtn')[0].get(info_name);
     except:
         pass
     
     return info_value 
+
+def get_images(item_id):
+    
+    images = []
+    
+    url = 'http://nalbandstamp.com/cfc/inventory.cfc?method=getStampImages'
+    
+    try:
+        params = {'itemID': item_id} 
+        page = requests.post(url = url, params = params, headers={'User-Agent': 'Mozilla/5.0'}) 
+        json_data = json.loads(page.content)
+        parts1 = str(json_data['data']).split('src="./')
+        for part1 in parts1:
+            if 'prodImages/' in part1:
+                parts2 = part1.split('"')
+                img = 'http://nalbandstamp.com/' + parts2[0]
+                if img not in images:
+                   images.append(img)
+    except:
+        pass
+
+    return images
 
 def get_details(html):
     
@@ -53,13 +75,8 @@ def get_details(html):
     stamp['currency'] = 'USD'
     
     # image_urls should be a list
-    images = []     
-    try:
-        img = 'http://nalbandstamp.com/' + get_value(html, 'data-img')
-        images.append(img)        
-    except:
-        pass
-
+    item_id = get_value(html, 'data-id')
+    images = get_images(item_id)    
     stamp['image_urls'] = images 
 
     if stamp['raw_text'] == None and stamp['title'] != None:
