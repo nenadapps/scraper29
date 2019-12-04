@@ -62,7 +62,10 @@ def get_details(html):
     stamp['price'] = price  
     
     try:
-        title_parts = desc.split('<br>')
+        if '<br>' in desc:
+            title_parts = desc.split('<br>')
+        else:
+            title_parts = str(desc).split('\r\n')
         title = title_parts[0].strip()
     except:
         title = None
@@ -77,6 +80,9 @@ def get_details(html):
     # image_urls should be a list
     item_id = get_value(html, 'data-id')
     images = get_images(item_id)    
+    if not images:
+        img = get_value(html, 'data-img')
+        images.append(img)
     stamp['image_urls'] = images 
 
     if stamp['raw_text'] == None and stamp['title'] != None:
